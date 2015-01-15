@@ -99,7 +99,8 @@ remove() {
 	fi
 	local MESSAGE="remove file '$FILE'"
 	echo "$MESSAGE" >&2
-	hg -R "$REPOSITORY" rm -f "$REPOSITORY/$FILE"
+	hg -R "$REPOSITORY" rm -f "$REPOSITORY/$FILE" >/dev/null 2>&1
+	rm -f "$REPOSITORY/$FILE" # to overcome "not removing ... file is untracked"
 	hg -R "$REPOSITORY" ci -m "$MESSAGE"
 }
 
@@ -140,7 +141,10 @@ edit() {
 merge() {
 	_ensurerepo || return 1
 
-	local REVS=( $( hg -R "$REPOSITORY" heads --template '{node|short}\n' ) )
+	local REVS=("$@")
+	if [[ -z "${REVS[@]}" ]]; then
+		REVS=( $( hg -R "$REPOSITORY" heads --template '{node|short}\n' ) )
+	fi
 	if [[ "${#REVS[@]}" -lt 2 ]]; then
 		echo "nothing to merge" >&2
 		return
@@ -148,8 +152,21 @@ merge() {
 	local HEAD=( $( shuf -n 2 -e "${REVS[@]}" ) )
 	MESSAGE="merge revs '${HEAD[0]}' '${HEAD[1]}'"
 	echo "$MESSAGE" >&2
-	hg -R "$REPOSITORY" merge -y --tool internal:local -r "${HEAD[0]}" -r "${HEAD[1]}" >/dev/null 2>&1
+	hg -R "$REPOSITORY" merge -y --tool internal:local -r "${HEAD[0]}" -r "${HEAD[1]}" || true
 	hg -R "$REPOSITORY" ci -m "$MESSAGE"
+}
+
+merge_all() {
+	_ensurerepo || return 1
+
+	while true; do
+		local REVS=( $( hg -R "$REPOSITORY" heads --template '{node|short}\n' ) )
+		if [[ "${#REVS[@]}" -lt 2 ]]; then
+			echo "merged all heads" >&2
+			return
+		fi
+		merge "${REVS[@]}"
+	done
 }
 
 update() {
@@ -171,16 +188,12 @@ work() {
 
 	while [[ $NUM_COMMITS -gt 0 ]]; do
 		local ACTION=$RANDOM
-		if [[ $ACTION -lt 10000 ]]; then
+		if [[ $ACTION -lt 7000 ]]; then
 			add
-		elif [[ $ACTION -lt 15000 ]]; then
+		elif [[ $ACTION -lt 14000 ]]; then
 			remove
-		elif [[ $ACTION -lt 16000 ]]; then
+		elif [[ $ACTION -lt 21000 ]]; then
 			rename
-		elif [[ $ACTION -lt 20000 ]]; then
-			update
-		elif [[ $ACTION -lt 24000 ]]; then
-			merge
 		else
 			edit
 		fi
