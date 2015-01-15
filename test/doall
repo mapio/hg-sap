@@ -4,7 +4,7 @@ echocol() { echo -e "\033[31m*** $@...\033[0m"; }
 
 tests="simple"
 
-if [[ ! -r ~/.hgrc ]];
+if [[ ! -r ~/.hgrc ]]; then
 	echocol "Configuring mercurial"
 	cat <<EOF
 [ui]
