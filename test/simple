@@ -6,8 +6,6 @@ WORK="$TMPDIR/work"
 PUBLIC="$TMPDIR/public"
 REVS="$TMPDIR/revs.txt"
 
-# DEBUG="-d"
-
 echocol() { echo -e "\033[32m*** $@...\033[0m"; }
 
 . ./test/functions
@@ -37,12 +35,12 @@ simplework
 simplework
 simplework
 
-./hg-sap $DEBUG "$WORK" "$PUBLIC"
+./hg-sap "$WORK" "$PUBLIC"
 echo -e "$(tip_node "$WORK")\t$(tip_node "$PUBLIC")" >> "$REVS"
 
 simplework
 
-./hg-sap $DEBUG "$WORK" "$PUBLIC"
+./hg-sap "$WORK" "$PUBLIC"
 echo -e "$(tip_node "$WORK")\t$(tip_node "$PUBLIC")" >> "$REVS"
 
 simplework
@@ -50,8 +48,15 @@ simplework
 simplework
 simplework
 
-./hg-sap $DEBUG "$WORK" "$PUBLIC"
+./hg-sap "$WORK" "$PUBLIC"
 echo -e "$(tip_node "$WORK")\t$(tip_node "$PUBLIC")" >> "$REVS"
+
+### show
+
+echocol "Inspecting repos"
+
+inspect_repo "$WORK"
+inspect_repo "$PUBLIC"
 
 ### testit
 

@@ -1,0 +1,38 @@
+#!/bin/bash -e
+
+TMPDIR=$(mktemp -d /tmp/squash-XXXXXX) || exit 1
+
+REPOSITORY="$TMPDIR/work"
+PUBLIC="$TMPDIR/public"
+REVS="$TMPDIR/revs.txt"
+
+# DEBUG="-d"
+
+echocol() { echo -e "\033[32m*** $@...\033[0m"; }
+
+. ./test/functions
+
+# doit
+
+ROUNDS=10
+
+echocol "Performing $ROUND rounds of ramdoized work"
+
+add # to avoid errors on empty rounds
+while [[ $ROUNDS -gt 0 ]]; do
+	work
+	./hg-sap $DEBUG "$REPOSITORY" "$PUBLIC"
+	./hg-sap $DEBUG "$REPOSITORY" "$PUBLIC"
+	echo -e "$(tip_node "$REPOSITORY")\t$(tip_node "$PUBLIC")" >> "$REVS"
+	ROUNDS=$(( $ROUNDS - 1 ))
+done
+
+### testit
+
+echocol "Testing repo differences"
+
+cat "$REVS" | while read src dst; do
+	compare_repos "$REPOSITORY" "$src" "$PUBLIC" "$dst"
+done
+
+rm -rf "$TMPDIR"

@@ -42,7 +42,7 @@ _rndtext() {
 	cat /dev/urandom | tr -dc 'a-zA-Z0-9 ' | fold -w 80 | head -n $(( $RANDOM % 10 + 1 )) > "$OUT"
 }
 
-# repository comparison
+# testing functions
 
 tip_node() {
 	local REPO="$1"
@@ -69,6 +69,12 @@ compare_repos() {
 	rm -rf "$TMPDIR"
 }
 
+inspect_repo() {
+	local REPO="$1"
+
+	echo "*** Revs in '$REPO':"
+	hg -R "$REPO" log -r 0:tip --template '{node|short} {desc|firstline}\n'
+}
 
 # randomized mercurial actions
 
