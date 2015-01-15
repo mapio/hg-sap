@@ -1,26 +1,28 @@
 # Squash and Publish (for Mercurial)
 
-
 [![Build Status](https://travis-ci.org/mapio/hg-sap.png?branch=master)](https://travis-ci.org/mapio/hg-sap)
 
-This tool can help to publish a Mercurial repositoty squasing intermedaite
-(working) commits.
+A tool to publish a [Mercurial](http://mercurial.selenic.com/) repositoty
+squasing intermedaite (working) commits.
 
-It allows a workflow with a "private" *working* repository (where you perform
-frequent commits) that, from time to time, you want to push to a *public*
-repository (without keeping track of the intermediate changes).
+This tool can be used to build a workflow where a *working* repository
+(subject to frequent commits) is periodically released to a *public*
+repository *collapsing in a single changeset* all the changes happened between
+two releases.
 
 It works using the
 [collapse](http://mercurial.selenic.com/wiki/RebaseExtension#Collapsing)
 capability of the
 [rebase](http://mercurial.selenic.com/wiki/RebaseExtension)
-extension and
+extension, and
 keeping track of the last squashed revision using a
 [bookmark](http://mercurial.selenic.com/wiki/Bookmarks)
-(in the working repository). At every every invocation, it will pull the
-working repository to a squasing one where then it will rebase and collapse
-all the revisions between the last squashed and the tip, it then pushes the
-branch with collapsed revisions to the public repository.
+(in the working repository).
+
+At every every invocation, the tool pulls the working repository to a squasing
+one, where it collapses all the revisions between the last squashed commit and
+the tip; finally the tool pushes the branch with collapsed revisions to the
+public repository.
 
 
 ## Example
@@ -43,13 +45,13 @@ As an example, consider the following execution:
 	$ hg-sap work public
 	*** Squasing 'work' revs 4417615f6ecb:6b4fa3685130 in 'public'...   done!
 	*** Revs in 'work':
-	6b4fa3685130 Version 3
-	29ccfc46fbfa Version 2
+	f258fed5de13 Version 0
 	4417615f6ecb Version 1
-	f258fed5de13 Version 0
+	29ccfc46fbfa Version 2
+	6b4fa3685130 Version 3
 	*** Revs in 'public':
-	a83aa5aaacab Squashed from 4417615f6ecb to 6b4fa3685130
 	f258fed5de13 Version 0
+	a83aa5aaacab Squashed from 4417615f6ecb to 6b4fa3685130
 
 	$ cd work
 	... do some work ...
@@ -59,28 +61,29 @@ As an example, consider the following execution:
 	$ hg-sap work public
 	*** Squasing 'work' revs 8d89cd5a6f4b:8d89cd5a6f4b in 'public'...   done!
 	*** Revs in 'work':
-	8d89cd5a6f4b Version 4
-	6b4fa3685130 Version 3
-	29ccfc46fbfa Version 2
+	f258fed5de13 Version 0
 	4417615f6ecb Version 1
-	f258fed5de13 Version 0
+	29ccfc46fbfa Version 2
+	6b4fa3685130 Version 3
+	8d89cd5a6f4b Version 4
 	*** Revs in 'public':
-	b967a0910e60 Squashed from 8d89cd5a6f4b to 8d89cd5a6f4b
-	a83aa5aaacab Squashed from 4417615f6ecb to 6b4fa3685130
 	f258fed5de13 Version 0
+	a83aa5aaacab Squashed from 4417615f6ecb to 6b4fa3685130
+	b967a0910e60 Squashed from 8d89cd5a6f4b to 8d89cd5a6f4b
 
 ## Exercising Mercurial
 
-As a side tool, developed in order to test `hg-sap`, in `test/functions` you
-can find a set of shell functions to exercise Mercurial in a randomized way.
+As a side tool, developed in order to test `hg-sap`, in the
+[test/functions](test/functions) file you can find a set of shell functions to
+exercise Mercurial in a randomized way.
 
-That is to say, you have a function to:
+That is to say, in such file you can find a function to:
 
-- `add` a file (with random name and contaning random text),
+- `add` a file (with random name, and contaning random text),
 - `remove` a file (at random),
 - `edit` a file (adding, or deleting lines at random, containing random text),
 - `rename` a file (choosen at random, in another with a random name),
-- `work` that performs a random numer of the previous actions (choosen at random).
+- `work` that performs the previous actions (choosen at random).
 
 All functions operate on a repository named after the `$REPOSITORY`
 environment variable. For example, you can run it as:
@@ -110,7 +113,7 @@ environment variable. For example, you can run it as:
 	5 delete file 'file-L9B.txt'
 	6 rename file 'file-JUI.txt' to 'file-YGC.txt'
 
-Such file is used in the `test/randomized` test.
+Such file is used in the [test/randomized](test/randomized) test.
 
 ## Warning
 
