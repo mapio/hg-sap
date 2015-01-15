@@ -4,12 +4,11 @@ echocol() { echo -e "\033[31m*** $@...\033[0m"; }
 
 tests="simple"
 
-virtualenv /tmp/test
-. /tmp/test/bin/activate
-pip install mercurial
-
-if [[ ! -r ~/.hgrc ]]; then
-	echocol "Configuring mercurial"
+if [[ -n "$TRAVIS" ]]; then
+	echocol "Installing and configuring mercurial (we are on travis)"
+	virtualenv /tmp/test
+	. /tmp/test/bin/activate
+	pip install mercurial
 	cat >~/.hgrc <<EOF
 [ui]
 username = Test User <test@foo.bar>
