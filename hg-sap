@@ -21,6 +21,10 @@ squash() {
 		local MTO=$(hg -R "$WORKING_REPO" tip --template "$TEMPLATE")
 		local DEST=$(hg -R "$SQUASHING_REPO" tip --template "$TEMPLATE")
 	fi
+	if [[ -z "$MFROM" ]]; then
+		echo "*** Nothing to squash!"
+		exit
+	fi
 	local LOGFILE="$SQUASHING_REPO/.hg/squasing-$MFROM-$MTO.log"
 	echo -n "*** Squasing '$( basename "$WORKING_REPO" )' revs $MFROM:$MTO in '$( basename "$PUBLISHING_REPO" )'... " >&2
 	(
@@ -42,14 +46,5 @@ squash() {
 	fi
 }
 
-
-if [[ "$1" == "-d" ]]; then
-	DEBUG=1
-	shift
-fi
-
 squash "$1" "$2"
 
-if [[ -n "$DEBUG" ]]; then
-	debug "$1" "$2"
-fi
