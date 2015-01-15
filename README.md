@@ -86,7 +86,10 @@ That is to say, in such file you can find a function to:
 - `work` that performs the previous actions (choosen at random).
 
 All functions operate on a repository named after the `$REPOSITORY`
-environment variable. For example, you can run it as:
+environment variable. Moreover, a `compare_repos` function is provided that
+allows to compare two repository at given revisions.
+
+For example, you can use such functions as follows:
 
 	$ export REPOSITORY=a_test_repo
 	$ . ./test/functions
@@ -113,7 +116,7 @@ environment variable. For example, you can run it as:
 	5 delete file 'file-L9B.txt'
 	6 rename file 'file-JUI.txt' to 'file-YGC.txt'
 
-Such file is used in the [test/randomized](test/randomized) test.
+Such functions are used in the [test/randomized](test/randomized) test.
 
 ## Warning
 
