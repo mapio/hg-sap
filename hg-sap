@@ -48,9 +48,9 @@ debug() {
 
 	local TEMPLATE='{node|short} {desc|firstline}\n'
 	echo "*** Revs in '$WORKING_REPO':"
-	hg -R "$WORKING_REPO" log --template "$TEMPLATE"
+	hg -R "$WORKING_REPO" log -r 0:tip --template "$TEMPLATE"
 	echo "*** Revs in '$PUBLISHING_REPO':"
-	hg -R "$PUBLISHING_REPO" log --template "$TEMPLATE"
+	hg -R "$PUBLISHING_REPO" log -r 0:tip --template "$TEMPLATE"
 }
 
 if [[ "$1" == "-d" ]]; then
