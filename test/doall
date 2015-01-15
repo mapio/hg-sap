@@ -4,6 +4,10 @@ echocol() { echo -e "\033[31m*** $@...\033[0m"; }
 
 tests="simple"
 
+virtualenv /tmp/test
+. /tmp/test/bin/activate
+pip install mercurial
+
 if [[ ! -r ~/.hgrc ]]; then
 	echocol "Configuring mercurial"
 	cat >~/.hgrc <<EOF
