@@ -6,7 +6,7 @@ tests="simple"
 
 if [[ ! -r ~/.hgrc ]]; then
 	echocol "Configuring mercurial"
-	cat <<EOF
+	cat >~/.hgrc <<EOF
 [ui]
 username = Test User <test@foo.bar>
 EOF
