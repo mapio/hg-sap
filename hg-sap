@@ -18,7 +18,7 @@ squash() {
 		local DEST=$(hg -R "$SQUASHING_REPO" tip --template "$TEMPLATE")
 	fi
 	local LOGFILE="$SQUASHING_REPO/.hg/squasing-$MFROM-$MTO.log"
-	echo -n "*** Squasing '$( basename "$WORKING_REPO" )' revs $MFROM:$MTO in '$( basename "$PUBLISHING_REPO" )' repo... " >&2
+	echo -n "*** Squasing '$( basename "$WORKING_REPO" )' revs $MFROM:$MTO in '$( basename "$PUBLISHING_REPO" )'... " >&2
 	(
 		set -ex
 		hg -R "$SQUASHING_REPO" pull "$WORKING_REPO"
@@ -40,9 +40,9 @@ debug() {
 	local PUBLISHING_REPO="$2"
 
 	local TEMPLATE='{node|short} {desc|firstline}\n'
-	echo "*** Revs in '$WORKING_REPO' repo:"
+	echo "*** Revs in '$WORKING_REPO':"
 	hg -R "$WORKING_REPO" log --template "$TEMPLATE"
-	echo "*** Revs in '$PUBLISHING_REPO' repo:"
+	echo "*** Revs in '$PUBLISHING_REPO':"
 	hg -R "$PUBLISHING_REPO" log --template "$TEMPLATE"
 }
 
