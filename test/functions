@@ -28,10 +28,10 @@ _interleave() {
 	mv -f "$TMP" "$OUT"
 }
 
-_randelete() {
+_randdelete() {
 	local FILE="$1"
 
-	local TMP=$(mktemp /tmp/randelete-XXX.txt) || return 1
+	local TMP=$(mktemp /tmp/randdelete-XXX.txt) || return 1
 	nl "$FILE" | shuf | head -n $(( $RANDOM % $(wc -l < "$FILE") )) | sort -k1,1 -sn | cut -f2 > "$TMP"
 	mv -f "$TMP" "$FILE"
 }
@@ -55,15 +55,15 @@ add() {
 	hg -R "$REPOSITORY" ci -m "$MESSAGE"
 }
 
-delete() {
+remove() {
 	_ensurerepo || return 1
 
 	local FILE=$(ls -1 "$REPOSITORY" | shuf -n 1)
 	if [[ -z "$FILE" ]]; then
-		echo "nothing to delete" >&2
+		echo "nothing to remove" >&2
 		return
 	fi
-	local MESSAGE="delete file '$FILE'"
+	local MESSAGE="remove file '$FILE'"
 	echo "$MESSAGE" >&2
 	hg -R "$REPOSITORY" rm "$REPOSITORY/$FILE"
 	hg -R "$REPOSITORY" ci -m "$MESSAGE"
@@ -96,7 +96,7 @@ edit() {
 	local EDITS=$(mktemp /tmp/edits-XXX.txt) || return 1
 	MESSAGE="edit file '$FILE'"
 	_rndtext "$EDITS"
-	_randelete "$REPOSITORY/$FILE"
+	_randdelete "$REPOSITORY/$FILE"
 	_interleave "$REPOSITORY/$FILE" "$EDITS" "$REPOSITORY/$FILE"
 	rm -f "$EDITS"
 	echo "$MESSAGE" >&2
@@ -116,7 +116,7 @@ work() {
 		if [[ $ACTION -lt 10000 ]]; then
 			add
 		elif [[ $ACTION -lt 15000 ]]; then
-			delete
+			remove
 		elif [[ $ACTION -lt 20000 ]]; then
 			rename
 		else
