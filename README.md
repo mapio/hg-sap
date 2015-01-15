@@ -118,3 +118,6 @@ The tool is at a very **alpha stage** and will not check that all the
 performed passes complete succesfully; on the other hand, it will never modify
 the working repository (except for updating the bookmark), so it should be
 "reasonably safe" to be used.
+
+
+![Analytics](https://ga-beacon.appspot.com/UA-377250-20/hg-sap?pixel)
