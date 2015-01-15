@@ -1,5 +1,9 @@
 #!/bin/bash
 
+if hg help phase >/dev/null 2>&1; then
+	HAS_PHASE=1
+fi
+
 squash() {
 	local WORKING_REPO="$1"
 	local PUBLISHING_REPO="$2"
@@ -22,7 +26,7 @@ squash() {
 	(
 		set -ex
 		hg -R "$SQUASHING_REPO" pull "$WORKING_REPO"
-		hg -R "$SQUASHING_REPO" phase --draft --force 0:tip
+		[[ -n "$HAS_PHASE" ]] && hg -R "$SQUASHING_REPO" phase --draft --force 0:tip
 		hg -R "$SQUASHING_REPO" rebase --keep --dest "$DEST" --source "$MFROM" --collapse -l <(echo -e "Squashed from $MFROM to $MTO\n"; hg -R "$WORKING_REPO" log --style changelog -r "$MFROM:$MTO")
 		hg -R "$SQUASHING_REPO" push -r tip "$PUBLISHING_REPO"
 		hg -R "$WORKING_REPO" bookmark -fi last_squashed
