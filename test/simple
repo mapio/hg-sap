@@ -10,7 +10,6 @@ echocol() { echo -e "\033[32m*** $@...\033[0m"; }
 
 . ./test/functions
 
-V=0
 init() {
 	V=0
 	hg init "$WORK"
