@@ -19,10 +19,13 @@ echocol "Performing $ROUND rounds of ramdoized work"
 add # to avoid errors on empty rounds
 while [[ $ROUNDS -gt 0 ]]; do
 	work
-	./hg-sap $DEBUG "$REPOSITORY" "$PUBLIC"
+	./hg-sap "$REPOSITORY" "$PUBLIC"
 	echo -e "$(tip_node "$REPOSITORY")\t$(tip_node "$PUBLIC")" >> "$REVS"
 	ROUNDS=$(( $ROUNDS - 1 ))
 done
+add # to avoid an empty repo at the end
+./hg-sap "$REPOSITORY" "$PUBLIC"
+echo -e "$(tip_node "$REPOSITORY")\t$(tip_node "$PUBLIC")" >> "$REVS"
 
 ### testit
 
