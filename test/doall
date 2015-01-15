@@ -9,6 +9,9 @@ if [[ ! -r ~/.hgrc ]]; then
 	cat >~/.hgrc <<EOF
 [ui]
 username = Test User <test@foo.bar>
+[extensions]
+bookmarks =
+rebase =
 EOF
 fi
 
