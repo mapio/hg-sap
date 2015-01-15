@@ -1,3 +1,3 @@
 sudo: false
 script: ./test/doall
-install: "pip install mercurial"
+install: "pip install -U mercurial"
