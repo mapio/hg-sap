@@ -2,8 +2,6 @@
 
 echocol() { echo -e "\033[31m*** $@...\033[0m"; }
 
-tests="simple"
-
 if [[ -n "$TRAVIS" ]]; then
 	echocol "Configuring mercurial (we are on travis)"
 	cat >~/.hgrc <<EOF
@@ -15,6 +13,7 @@ rebase =
 EOF
 fi
 
+tests="simple randomized"
 
 for t in $tests; do
 	echocol $t
