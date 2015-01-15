@@ -1,5 +1,7 @@
 # Squash and Publish (for Mercurial)
 
+[![Build Status](https://travis-ci.org/mapio/hg-sap.png?branch=master)](https://travis-ci.org/mapio/hg-sap)
+
 This tool can help publishing a Mercurial repositoty squasing intermedaite
 (working) commits.
 
