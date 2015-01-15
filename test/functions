@@ -48,7 +48,7 @@ add() {
 	_ensurerepo || return 1
 
 	local FILE=$(mktemp "$REPOSITORY"/file-XXX.txt) || return 1
-	local MESSAGE="create file '${FILE#$REPOSITORY/}'"
+	local MESSAGE="add file '${FILE#$REPOSITORY/}'"
 	_rndtext "$FILE"
 	echo "$MESSAGE" >&2
 	hg -R "$REPOSITORY" add "$FILE"

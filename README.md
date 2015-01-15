@@ -69,6 +69,49 @@ As an example, consider the following execution:
 	a83aa5aaacab Squashed from 4417615f6ecb to 6b4fa3685130
 	f258fed5de13 Version 0
 
+## Exercising Mercurial
+
+As a side tool, developed in order to test `hg-sap`, in `test/functions` you
+can find a set of shell functions to exercise Mercurial in a randomized way.
+
+That is to say, you have a function to:
+
+- `add` a file (with random name and contaning random text),
+- `remove` a file (at random),
+- `edit` a file (adding, or deleting lines at random, containing random text),
+- `rename` a file (choosen at random, in another with a random name),
+- `work` that performs a random numer of the previous actions (choosen at random).
+
+All functions operate on a repository named after the `$REPOSITORY`
+environment variable. For example, you can run it as:
+
+	$ export REPOSITORY=a_test_repo
+	$ . ./test/functions
+	$ add
+	add file 'file-L9B.txt'
+	$ add
+	add file 'file-JUI.txt'
+	$ edit
+	edit file 'file-JUI.txt'
+	$ edit
+	edit file 'file-JUI.txt'
+	$ edit
+	edit file 'file-L9B.txt'
+	$ delete
+	delete file 'file-L9B.txt'
+	$ rename
+	rename file 'file-JUI.txt' to 'file-YGC.txt'
+	$ hg -R $REPOSITORY log -r 0:tip --template '{rev} {desc}\n'
+	0 add file 'file-L9B.txt'
+	1 add file 'file-JUI.txt'
+	2 edit file 'file-JUI.txt'
+	3 edit file 'file-JUI.txt'
+	4 edit file 'file-L9B.txt'
+	5 delete file 'file-L9B.txt'
+	6 rename file 'file-JUI.txt' to 'file-YGC.txt'
+
+Such file is used in the `test/randomized` test.
+
 ## Warning
 
 The tool is at a very **alpha stage** and will not check that all the
