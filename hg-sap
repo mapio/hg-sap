@@ -1,12 +1,11 @@
-#!/bin/bash -e
-
-TEMPLATE='{node|short}\n'
+#!/bin/bash
 
 squash() {
 	local WORKING_REPO="$1"
 	local PUBLISHING_REPO="$2"
 
 	local SQUASHING_REPO="${WORKING_REPO}-squasing"
+	local TEMPLATE='{node|short}\n'
 	if [[ ! -d "$SQUASHING_REPO" ]]; then
 		hg init "$SQUASHING_REPO"
 		hg init "$PUBLISHING_REPO"
@@ -19,36 +18,41 @@ squash() {
 		local DEST=$(hg -R "$SQUASHING_REPO" tip --template "$TEMPLATE")
 	fi
 	local LOGFILE="$SQUASHING_REPO/.hg/squasing-$MFROM-$MTO.log"
-	echo -n "*** Squasing '"$WORKING_REPO"' revs $MFROM:$MTO in '$PUBLISHING_REPO' repo... " >&2
+	echo -n "*** Squasing '$( basename "$WORKING_REPO" )' revs $MFROM:$MTO in '$( basename "$PUBLISHING_REPO" )' repo... " >&2
 	(
-	hg -R "$SQUASHING_REPO" pull "$WORKING_REPO"
-	hg -R "$SQUASHING_REPO" phase --draft --force 0:tip
-	hg -R "$SQUASHING_REPO" rebase --keep --dest "$DEST" --source "$MFROM" --collapse -l <(echo -e "Squashed from $MFROM to $MTO\n"; hg -R "$WORKING_REPO" log --style changelog -r "$MFROM:$MTO")
-	hg -R "$SQUASHING_REPO" push -r tip "$PUBLISHING_REPO"
-	hg -R "$WORKING_REPO" bookmark -fi last_squashed
+		set -ex
+		hg -R "$SQUASHING_REPO" pull "$WORKING_REPO"
+		hg -R "$SQUASHING_REPO" phase --draft --force 0:tip
+		hg -R "$SQUASHING_REPO" rebase --keep --dest "$DEST" --source "$MFROM" --collapse -l <(echo -e "Squashed from $MFROM to $MTO\n"; hg -R "$WORKING_REPO" log --style changelog -r "$MFROM:$MTO")
+		hg -R "$SQUASHING_REPO" push -r tip "$PUBLISHING_REPO"
+		hg -R "$WORKING_REPO" bookmark -fi last_squashed
 	) > "$LOGFILE" 2>&1
-	echo " logs saved in '$LOGFILE', done!" >&2
+	if [[ $? -ne 0 ]]; then
+		echo -e " ERORR!\nLogs saved in '$LOGFILE'." >&2
+		exit 1
+	else
+		echo "  done!" >&2
+	fi
 }
 
 debug() {
 	local WORKING_REPO="$1"
 	local PUBLISHING_REPO="$2"
 
-	if [[ ! -z "$VERBOSE" ]]; then
-		echo "*** Revs in '$WORKING_REPO' repo..."
-		hg -R "$WORKING_REPO" log --template '{node|short} {desc}\n'
-		echo "*** Revs in '$PUBLISHING_REPO' repo..."
-		hg -R "$PUBLISHING_REPO" log --template '{node|short} {desc}\n'
-	fi
+	local TEMPLATE='{node|short} {desc|firstline}\n'
+	echo "*** Revs in '$WORKING_REPO' repo:"
+	hg -R "$WORKING_REPO" log --template "$TEMPLATE"
+	echo "*** Revs in '$PUBLISHING_REPO' repo:"
+	hg -R "$PUBLISHING_REPO" log --template "$TEMPLATE"
 }
 
-if [[ "$1" == "-v" ]]; then
-	VERBOSE=1
+if [[ "$1" == "-d" ]]; then
+	DEBUG=1
 	shift
 fi
 
 squash "$1" "$2"
 
-if [[ -n "$VERBOSE" ]]; then
+if [[ -n "$DEBUG" ]]; then
 	debug "$1" "$2"
 fi
