@@ -1,36 +1,39 @@
 #!/bin/bash -e
 
-rm -rf work* public
+TMPDIR=$(mktemp -d /tmp/squash-XXXXXX) || exit 1
+WORK="$TMPDIR/work"
+PUBLIC="$TMPDIR/public"
 
-hg init work
+hg init "$WORK"
 
 V=0
-echo $V > work/file.txt
-hg -R work add work/file.txt
-hg -R work ci -m"Versione $V"
+echo $V > "$WORK/file.txt"
+hg -R "$WORK" add "$WORK/file.txt"
+hg -R "$WORK" ci -m"Version $V"
 
-V=$((V+1)); echo $V > work/file.txt; hg -R work ci -m"Versione $V"
-V=$((V+1)); echo $V > work/file.txt; hg -R work ci -m"Versione $V"
-V=$((V+1)); echo $V > work/file.txt; hg -R work ci -m"Versione $V"
-V=$((V+1)); echo $V > work/file.txt; hg -R work ci -m"Versione $V"
+V=$((V+1)); echo $V > "$WORK/file.txt"; hg -R "$WORK" ci -m"Version $V"
+V=$((V+1)); echo $V > "$WORK/file.txt"; hg -R "$WORK" ci -m"Version $V"
+V=$((V+1)); echo $V > "$WORK/file.txt"; hg -R "$WORK" ci -m"Version $V"
 
-../hg-sap work public
+./hg-sap "$WORK" "$PUBLIC"
 
-V=$((V+1)); echo $V > work/file.txt; hg -R work ci -m"Versione $V"
-V=$((V+1)); echo $V > work/file.txt; hg -R work ci -m"Versione $V"
-V=$((V+1)); echo $V > work/file.txt; hg -R work ci -m"Versione $V"
+V=$((V+1)); echo $V > "$WORK/file.txt"; hg -R "$WORK" ci -m"Version $V"
+V=$((V+1)); echo $V > "$WORK/file.txt"; hg -R "$WORK" ci -m"Version $V"
+V=$((V+1)); echo $V > "$WORK/file.txt"; hg -R "$WORK" ci -m"Version $V"
 
-../hg-sap work public
+./hg-sap "$WORK" "$PUBLIC"
 
-V=$((V+1)); echo $V > work/file.txt; hg -R work ci -m"Versione $V"
-V=$((V+1)); echo $V > work/file.txt; hg -R work ci -m"Versione $V"
-V=$((V+1)); echo $V > work/file.txt; hg -R work ci -m"Versione $V"
-V=$((V+1)); echo $V > work/file.txt; hg -R work ci -m"Versione $V"
-V=$((V+1)); echo $V > work/file.txt; hg -R work ci -m"Versione $V"
+V=$((V+1)); echo $V > "$WORK/file.txt"; hg -R "$WORK" ci -m"Version $V"
+V=$((V+1)); echo $V > "$WORK/file.txt"; hg -R "$WORK" ci -m"Version $V"
+V=$((V+1)); echo $V > "$WORK/file.txt"; hg -R "$WORK" ci -m"Version $V"
 
-../hg-sap work public
+./hg-sap "$WORK" "$PUBLIC"
 
-V=$((V+1)); echo $V > work/file.txt; hg -R work ci -m"Versione $V"
-V=$((V+1)); echo $V > work/file.txt; hg -R work ci -m"Versione $V"
+V=$((V+1)); echo $V > "$WORK/file.txt"; hg -R "$WORK" ci -m"Version $V"
+V=$((V+1)); echo $V > "$WORK/file.txt"; hg -R "$WORK" ci -m"Version $V"
+V=$((V+1)); echo $V > "$WORK/file.txt"; hg -R "$WORK" ci -m"Version $V"
+V=$((V+1)); echo $V > "$WORK/file.txt"; hg -R "$WORK" ci -m"Version $V"
 
-../hg-sap -v work public
+./hg-sap -v "$WORK" "$PUBLIC"
+
+rm -rf "$TMPDIR"

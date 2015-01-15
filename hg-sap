@@ -1,5 +1,7 @@
 #!/bin/bash -e
 
+TEMPLATE='{node|short}\n'
+
 squash() {
 	local WORKING_REPO="$1"
 	local PUBLISHING_REPO="$2"
@@ -8,13 +10,13 @@ squash() {
 	if [[ ! -d "$SQUASHING_REPO" ]]; then
 		hg init "$SQUASHING_REPO"
 		hg init "$PUBLISHING_REPO"
-		local MFROM=$(hg -R "$WORKING_REPO" log -r 1 --template '{node|short}\n')
-		local MTO=$(hg -R "$WORKING_REPO" tip --template '{node|short}\n')
+		local MFROM=$(hg -R "$WORKING_REPO" log -r 1 --template "$TEMPLATE")
+		local MTO=$(hg -R "$WORKING_REPO" tip --template "$TEMPLATE")
 		local DEST=0
 	else
-		local MFROM=$(hg -R "$WORKING_REPO" log -r "children(last_squashed)" --template '{node|short}\n')
-		local MTO=$(hg -R "$WORKING_REPO" tip --template '{node|short}\n')
-		local DEST=$(hg -R public tip --template '{node|short}\n')
+		local MFROM=$(hg -R "$WORKING_REPO" log -r "children(last_squashed)" --template "$TEMPLATE")
+		local MTO=$(hg -R "$WORKING_REPO" tip --template "$TEMPLATE")
+		local DEST=$(hg -R "$SQUASHING_REPO" tip --template "$TEMPLATE")
 	fi
 	local LOGFILE="$SQUASHING_REPO/.hg/squasing-$MFROM-$MTO.log"
 	echo -n "*** Squasing '"$WORKING_REPO"' revs $MFROM:$MTO in '$PUBLISHING_REPO' repo... " >&2
