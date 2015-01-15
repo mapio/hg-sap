@@ -46,8 +46,8 @@ last() {
 	hg -R "$1" tip --template '{node|short}'
 }
 
-
 ### doit
+
 echocol "Performing some work"
 
 init
@@ -77,7 +77,6 @@ echo -e "$(last "$WORK")\t$(last "$PUBLIC")" >> "$REVS"
 echocol "Testing repo differences"
 
 cat "$REVS" | while read src dst; do
-
 	cmprepo "$WORK" "$src" "$PUBLIC" "$dst"
 done
 

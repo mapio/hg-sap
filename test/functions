@@ -1,0 +1,127 @@
+# helper functions
+
+_ensurerepo() {
+	if [[ -z "$REPOSITORY" ]]; then
+		echo "Please define the REPOSITORY environment variable" >&2
+		return 1
+	fi
+	if [[ ! -d "$REPOSITORY" ]]; then
+		hg init "$REPOSITORY"
+	fi
+}
+
+_decorate() {
+	local FILE="$1"
+
+	paste <(cat "$FILE" | while read line; do
+		echo -e "$RANDOM"
+	done | sort -n -k1,1) "$FILE"
+}
+
+_interleave() {
+	local IN0="$1"
+	local IN1="$2"
+	local OUT="$3"
+
+	local TMP=$(mktemp /tmp/interleave-XXX.txt) || return 1
+	sort -k1,1 -snm <(_decorate "$IN0") <(_decorate "$IN1") | cut -f2 > "$TMP"
+	mv -f "$TMP" "$OUT"
+}
+
+_randelete() {
+	local FILE="$1"
+
+	local TMP=$(mktemp /tmp/randelete-XXX.txt) || return 1
+	nl "$FILE" | shuf | head -n $(( $RANDOM % $(wc -l < "$FILE") )) | sort -k1,1 -sn | cut -f2 > "$TMP"
+	mv -f "$TMP" "$FILE"
+}
+
+_rndtext() {
+	local OUT="$1"
+
+	cat /dev/urandom | tr -dc 'a-zA-Z0-9 ' | fold -w 80 | head -n $(( $RANDOM % 10 + 1 )) > "$OUT"
+}
+
+# randomized mercurial actions
+
+add() {
+	_ensurerepo || return 1
+
+	local FILE=$(mktemp "$REPOSITORY"/file-XXX.txt) || return 1
+	local MESSAGE="create file '${FILE#$REPOSITORY/}'"
+	_rndtext "$FILE"
+	echo "$MESSAGE" >&2
+	hg -R "$REPOSITORY" add "$FILE"
+	hg -R "$REPOSITORY" ci -m "$MESSAGE"
+}
+
+delete() {
+	_ensurerepo || return 1
+
+	local FILE=$(ls -1 "$REPOSITORY" | shuf -n 1)
+	if [[ -z "$FILE" ]]; then
+		echo "nothing to delete" >&2
+		return
+	fi
+	local MESSAGE="delete file '$FILE'"
+	echo "$MESSAGE" >&2
+	hg -R "$REPOSITORY" rm "$REPOSITORY/$FILE"
+	hg -R "$REPOSITORY" ci -m "$MESSAGE"
+}
+
+rename() {
+	_ensurerepo || return 1
+
+	local FILE0=$(ls -1 "$REPOSITORY" | shuf -n 1)
+	if [[ -z "$FILE0" ]]; then
+		echo "nothing to rename" >&2
+		return
+	fi
+	local FILE1=$(mktemp "$REPOSITORY"/file-XXX.txt) || return 1
+	rm -f "$FILE1"
+	local MESSAGE="rename file '$FILE0' to '${FILE1#$REPOSITORY/}'"
+	echo "$MESSAGE" >&2
+	hg -R "$REPOSITORY" mv "$REPOSITORY/$FILE0" "$FILE1"
+	hg -R "$REPOSITORY" ci -m "$MESSAGE"
+}
+
+edit() {
+	_ensurerepo || return 1
+
+	local FILE=$(ls -1 "$REPOSITORY" | shuf -n 1)
+	if [[ -z "$FILE" ]]; then
+		echo "nothing to edit" >&2
+		return
+	fi
+	local EDITS=$(mktemp /tmp/edits-XXX.txt) || return 1
+	MESSAGE="edit file '$FILE'"
+	_rndtext "$EDITS"
+	_randelete "$REPOSITORY/$FILE"
+	_interleave "$REPOSITORY/$FILE" "$EDITS" "$REPOSITORY/$FILE"
+	rm -f "$EDITS"
+	echo "$MESSAGE" >&2
+	hg -R "$REPOSITORY" ci -m "$MESSAGE"
+}
+
+work() {
+	_ensurerepo || return 1
+
+	local NUM_COMMITS="$1"
+	if [[ -z "$NUM_COMMITS" ]]; then
+		NUM_COMMITS=$(( $RANDOM / 5000 + 1 ))
+	fi
+
+	while [[ $NUM_COMMITS -gt 0 ]]; do
+		local ACTION=$RANDOM
+		if [[ $ACTION -lt 10000 ]]; then
+			add
+		elif [[ $ACTION -lt 15000 ]]; then
+			delete
+		elif [[ $ACTION -lt 20000 ]]; then
+			rename
+		else
+			edit
+		fi
+		NUM_COMMITS=$(( $NUM_COMMITS - 1 ))
+	done
+}
