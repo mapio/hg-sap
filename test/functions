@@ -42,6 +42,34 @@ _rndtext() {
 	cat /dev/urandom | tr -dc 'a-zA-Z0-9 ' | fold -w 80 | head -n $(( $RANDOM % 10 + 1 )) > "$OUT"
 }
 
+# repository comparison
+
+tip_node() {
+	local REPO="$1"
+
+	hg -R "$REPO" tip --template '{node|short}'
+}
+
+compare_repos() {
+	local SRC="$1"
+	local SRC_AT="$2"
+	local DST="$3"
+	local DST_AT="$4"
+	local TMPDIR=$(mktemp -d /tmp/cmprepo-XXXXXX) || exit 1
+
+	hg -R "$SRC" archive -r "$SRC_AT" "$TMPDIR/src"
+	hg -R "$DST" archive -r "$DST_AT" "$TMPDIR/dst"
+	rm -f "$TMPDIR"/{src,dst}/.hg_archival.txt
+	if diff -qr "$TMPDIR/src" "$TMPDIR/dst" 2>/dev/null; then
+		echo "'$(basename $SRC)@$SRC_AT' is equal to '$(basename $DST)@$DST_AT'"
+	else
+		echo "Repo '$(basename $SRC)@$SRC_AT' differs from '$(basename $DST)@$DST_AT'"
+		exit 1
+	fi
+	rm -rf "$TMPDIR"
+}
+
+
 # randomized mercurial actions
 
 add() {

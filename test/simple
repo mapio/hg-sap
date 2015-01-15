@@ -6,26 +6,11 @@ WORK="$TMPDIR/work"
 PUBLIC="$TMPDIR/public"
 REVS="$TMPDIR/revs.txt"
 
+# DEBUG="-d"
+
 echocol() { echo -e "\033[32m*** $@...\033[0m"; }
 
-cmprepo() {
-	local SRC="$1"
-	local SRC_AT="$2"
-	local DST="$3"
-	local DST_AT="$4"
-	local TMPDIR=$(mktemp -d /tmp/cmprepo-XXXXXX) || exit 1
-
-	hg -R "$SRC" archive -r "$SRC_AT" "$TMPDIR/src"
-	hg -R "$DST" archive -r "$DST_AT" "$TMPDIR/dst"
-	rm -f "$TMPDIR"/{src,dst}/.hg_archival.txt
-	if diff -qr "$TMPDIR/src" "$TMPDIR/dst" 2>/dev/null; then
-		echo "'$(basename $SRC)@$SRC_AT' is equal to '$(basename $DST)@$DST_AT'"
-	else
-		echo "Repo '$(basename $SRC)@$SRC_AT' differs from '$(basename $DST)@$DST_AT'"
-		exit 1
-	fi
-	rm -rf "$TMPDIR"
-}
+. ./test/functions
 
 V=0
 init() {
@@ -36,14 +21,10 @@ init() {
 	hg -R "$WORK" ci -m"Version $V"
 }
 
-work() {
+simplework() {
 	V=$((V+1))
 	echo $V > "$WORK/file.txt"
 	hg -R "$WORK" ci -m"Version $V"
-}
-
-last() {
-	hg -R "$1" tip --template '{node|short}'
 }
 
 ### doit
@@ -52,32 +33,32 @@ echocol "Performing some work"
 
 init
 
-work
-work
-work
+simplework
+simplework
+simplework
 
-./hg-sap -d "$WORK" "$PUBLIC"
-echo -e "$(last "$WORK")\t$(last "$PUBLIC")" >> "$REVS"
+./hg-sap $DEBUG "$WORK" "$PUBLIC"
+echo -e "$(tip_node "$WORK")\t$(tip_node "$PUBLIC")" >> "$REVS"
 
-work
+simplework
 
-./hg-sap -d "$WORK" "$PUBLIC"
-echo -e "$(last "$WORK")\t$(last "$PUBLIC")" >> "$REVS"
+./hg-sap $DEBUG "$WORK" "$PUBLIC"
+echo -e "$(tip_node "$WORK")\t$(tip_node "$PUBLIC")" >> "$REVS"
 
-work
-work
-work
-work
+simplework
+simplework
+simplework
+simplework
 
-./hg-sap -d "$WORK" "$PUBLIC"
-echo -e "$(last "$WORK")\t$(last "$PUBLIC")" >> "$REVS"
+./hg-sap $DEBUG "$WORK" "$PUBLIC"
+echo -e "$(tip_node "$WORK")\t$(tip_node "$PUBLIC")" >> "$REVS"
 
 ### testit
 
 echocol "Testing repo differences"
 
 cat "$REVS" | while read src dst; do
-	cmprepo "$WORK" "$src" "$PUBLIC" "$dst"
+	compare_repos "$WORK" "$src" "$PUBLIC" "$dst"
 done
 
 rm -rf "$TMPDIR"
