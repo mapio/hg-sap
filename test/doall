@@ -4,7 +4,7 @@ echocol() { echo -e "\033[31m*** $@...\033[0m"; }
 
 tests="simple"
 
-if [[ -n "$TRAVIS" ]]; then
+if [[ -n "$xTRAVIS" ]]; then
 	echocol "Installing and configuring mercurial (we are on travis)"
 	virtualenv /tmp/test
 	. /tmp/test/bin/activate

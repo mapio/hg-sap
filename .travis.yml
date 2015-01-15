@@ -1,3 +1,4 @@
+sudo: false
 language: python
 script: ./test/doall
-install: 'pip install virtualenv'
+install: 'pip install -U mercurial'
