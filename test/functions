@@ -99,7 +99,7 @@ remove() {
 	fi
 	local MESSAGE="remove file '$FILE'"
 	echo "$MESSAGE" >&2
-	hg -R "$REPOSITORY" rm "$REPOSITORY/$FILE"
+	hg -R "$REPOSITORY" rm -f "$REPOSITORY/$FILE"
 	hg -R "$REPOSITORY" ci -m "$MESSAGE"
 }
 
@@ -137,6 +137,30 @@ edit() {
 	hg -R "$REPOSITORY" ci -m "$MESSAGE"
 }
 
+merge() {
+	_ensurerepo || return 1
+
+	local REVS=( $( hg -R "$REPOSITORY" heads --template '{node|short}\n' ) )
+	if [[ "${#REVS[@]}" -lt 2 ]]; then
+		echo "nothing to merge" >&2
+		return
+	fi
+	local HEAD=( $( shuf -n 2 -e "${REVS[@]}" ) )
+	MESSAGE="merge revs '${HEAD[0]}' '${HEAD[1]}'"
+	echo "$MESSAGE" >&2
+	hg -R "$REPOSITORY" merge -y --tool internal:local -r "${HEAD[0]}" -r "${HEAD[1]}" >/dev/null 2>&1
+	hg -R "$REPOSITORY" ci -m "$MESSAGE"
+}
+
+update() {
+	_ensurerepo || return 1
+
+	local REV=$(hg -R "$REPOSITORY" log --template '{node|short}\n' | shuf -n 1)
+	MESSAGE="update to rev '$REV'"
+	echo "$MESSAGE" >&2
+	hg -R "$REPOSITORY" up -r "$REV" >/dev/null 2>&1
+}
+
 work() {
 	_ensurerepo || return 1
 
@@ -151,8 +175,12 @@ work() {
 			add
 		elif [[ $ACTION -lt 15000 ]]; then
 			remove
-		elif [[ $ACTION -lt 20000 ]]; then
+		elif [[ $ACTION -lt 16000 ]]; then
 			rename
+		elif [[ $ACTION -lt 20000 ]]; then
+			update
+		elif [[ $ACTION -lt 24000 ]]; then
+			merge
 		else
 			edit
 		fi
