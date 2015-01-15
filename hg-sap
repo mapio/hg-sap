@@ -1,0 +1,52 @@
+#!/bin/bash -e
+
+squash() {
+	local WORKING_REPO="$1"
+	local PUBLISHING_REPO="$2"
+
+	local SQUASHING_REPO="${WORKING_REPO}-squasing"
+	if [[ ! -d "$SQUASHING_REPO" ]]; then
+		hg init "$SQUASHING_REPO"
+		hg init "$PUBLISHING_REPO"
+		local MFROM=$(hg -R "$WORKING_REPO" log -r 1 --template '{node|short}\n')
+		local MTO=$(hg -R "$WORKING_REPO" tip --template '{node|short}\n')
+		local DEST=0
+	else
+		local MFROM=$(hg -R "$WORKING_REPO" log -r "children(last_squashed)" --template '{node|short}\n')
+		local MTO=$(hg -R "$WORKING_REPO" tip --template '{node|short}\n')
+		local DEST=$(hg -R public tip --template '{node|short}\n')
+	fi
+	local LOGFILE="$SQUASHING_REPO/.hg/squasing-$MFROM-$MTO.log"
+	echo -n "*** Squasing '"$WORKING_REPO"' revs $MFROM:$MTO in '$PUBLISHING_REPO' repo... " >&2
+	(
+	hg -R "$SQUASHING_REPO" pull "$WORKING_REPO"
+	hg -R "$SQUASHING_REPO" phase --draft --force 0:tip
+	hg -R "$SQUASHING_REPO" rebase --keep --dest "$DEST" --source "$MFROM" --collapse -l <(echo -e "Squashed from $MFROM to $MTO\n"; hg -R "$WORKING_REPO" log --style changelog -r "$MFROM:$MTO")
+	hg -R "$SQUASHING_REPO" push -r tip "$PUBLISHING_REPO"
+	hg -R "$WORKING_REPO" bookmark -fi last_squashed
+	) > "$LOGFILE" 2>&1
+	echo " logs saved in '$LOGFILE', done!" >&2
+}
+
+debug() {
+	local WORKING_REPO="$1"
+	local PUBLISHING_REPO="$2"
+
+	if [[ ! -z "$VERBOSE" ]]; then
+		echo "*** Revs in '$WORKING_REPO' repo..."
+		hg -R "$WORKING_REPO" log --template '{node|short} {desc}\n'
+		echo "*** Revs in '$PUBLISHING_REPO' repo..."
+		hg -R "$PUBLISHING_REPO" log --template '{node|short} {desc}\n'
+	fi
+}
+
+if [[ "$1" == "-v" ]]; then
+	VERBOSE=1
+	shift
+fi
+
+squash "$1" "$2"
+
+if [[ -n "$VERBOSE" ]]; then
+	debug "$1" "$2"
+fi

@@ -1,0 +1,36 @@
+#!/bin/bash -e
+
+rm -rf work* public
+
+hg init work
+
+V=0
+echo $V > work/file.txt
+hg -R work add work/file.txt
+hg -R work ci -m"Versione $V"
+
+V=$((V+1)); echo $V > work/file.txt; hg -R work ci -m"Versione $V"
+V=$((V+1)); echo $V > work/file.txt; hg -R work ci -m"Versione $V"
+V=$((V+1)); echo $V > work/file.txt; hg -R work ci -m"Versione $V"
+V=$((V+1)); echo $V > work/file.txt; hg -R work ci -m"Versione $V"
+
+../hg-sap work public
+
+V=$((V+1)); echo $V > work/file.txt; hg -R work ci -m"Versione $V"
+V=$((V+1)); echo $V > work/file.txt; hg -R work ci -m"Versione $V"
+V=$((V+1)); echo $V > work/file.txt; hg -R work ci -m"Versione $V"
+
+../hg-sap work public
+
+V=$((V+1)); echo $V > work/file.txt; hg -R work ci -m"Versione $V"
+V=$((V+1)); echo $V > work/file.txt; hg -R work ci -m"Versione $V"
+V=$((V+1)); echo $V > work/file.txt; hg -R work ci -m"Versione $V"
+V=$((V+1)); echo $V > work/file.txt; hg -R work ci -m"Versione $V"
+V=$((V+1)); echo $V > work/file.txt; hg -R work ci -m"Versione $V"
+
+../hg-sap work public
+
+V=$((V+1)); echo $V > work/file.txt; hg -R work ci -m"Versione $V"
+V=$((V+1)); echo $V > work/file.txt; hg -R work ci -m"Versione $V"
+
+../hg-sap -v work public
