@@ -56,12 +56,12 @@ work
 work
 work
 
-./hg-sap "$WORK" "$PUBLIC"
+./hg-sap -d "$WORK" "$PUBLIC"
 echo -e "$(last "$WORK")\t$(last "$PUBLIC")" >> "$REVS"
 
 work
 
-./hg-sap "$WORK" "$PUBLIC"
+./hg-sap -d "$WORK" "$PUBLIC"
 echo -e "$(last "$WORK")\t$(last "$PUBLIC")" >> "$REVS"
 
 work

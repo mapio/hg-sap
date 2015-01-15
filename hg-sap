@@ -29,6 +29,9 @@ squash() {
 	) > "$LOGFILE" 2>&1
 	if [[ $? -ne 0 ]]; then
 		echo -e " ERORR!\nLogs saved in '$LOGFILE'." >&2
+		if [[ -n "$DEBUG" ]]; then
+			cat "$LOGFILE" >&2
+		fi
 		exit 1
 	else
 		echo "  done!" >&2
