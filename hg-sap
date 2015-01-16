@@ -26,7 +26,7 @@ squash() {
 		exit
 	fi
 	local LOGFILE="$SQUASHING_REPO/.hg/squasing-$MFROM-$MTO.log"
-	echo -n "*** Squasing '$( basename "$WORKING_REPO" )' revs $MFROM:$MTO in '$( basename "$PUBLISHING_REPO" )'... " >&2
+	echo -n "*** Squashing '$( basename "$WORKING_REPO" )' revs $MFROM:$MTO in '$( basename "$PUBLISHING_REPO" )'... " >&2
 	(
 		set -ex
 		hg -R "$SQUASHING_REPO" pull "$WORKING_REPO"
