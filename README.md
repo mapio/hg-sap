@@ -2,8 +2,8 @@
 
 [![Build Status](https://travis-ci.org/mapio/hg-sap.png?branch=master)](https://travis-ci.org/mapio/hg-sap)
 
-A tool to publish a [Mercurial](http://mercurial.selenic.com/) repositoty
-squasing intermedaite (working) commits.
+A tool to publish a [Mercurial](http://mercurial.selenic.com/) repository
+squashing intermediate (working) commits.
 
 This tool can be used to build a workflow where a *working* repository
 (subject to frequent commits) is periodically released to a *public*
@@ -19,7 +19,7 @@ keeping track of the last squashed revision using a
 [bookmark](http://mercurial.selenic.com/wiki/Bookmarks)
 (in the working repository).
 
-At every every invocation, the tool pulls the working repository to a squasing
+At every every invocation, the tool pulls the working repository to a squashed
 one, where it collapses all the revisions between the last squashed commit and
 the tip; finally the tool pushes the branch with collapsed revisions to the
 public repository.
@@ -43,7 +43,7 @@ As an example, consider the following execution:
 
 	$ cd ..
 	$ hg-sap work public
-	*** Squasing 'work' revs 4417615f6ecb:6b4fa3685130 in 'public'...   done!
+	*** Squashing 'work' revs 4417615f6ecb:6b4fa3685130 in 'public'...   done!
 	*** Revs in 'work':
 	f258fed5de13 Version 0
 	4417615f6ecb Version 1
@@ -121,7 +121,7 @@ Such functions are used in the [test/randomized](test/randomized) test.
 ## Warning
 
 The tool is at a very **alpha stage** and will not check that all the
-performed passes complete succesfully; on the other hand, it will never modify
+performed actions complete successfully; on the other hand, it will never modify
 the working repository (except for updating the bookmark), so it should be
 "reasonably safe" to be used.
 
