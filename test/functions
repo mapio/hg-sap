@@ -83,6 +83,17 @@ inspect_repo() {
 	hg -q -R "$REPO" log -r 0:tip --template '{node|short} {desc|firstline}\n'
 }
 
+# deterministic mercurial actions
+
+work_simple() {
+	_ensurerepo || return 1
+
+	REV="${REV:-0}"
+	echo "step $REV" | tee "$REPOSITORY/file.txt"
+	_hgr "$REPOSITORY" ci -Am "Version $REV"
+	REV=$((REV+1))
+}
+
 # randomized mercurial actions
 
 add() {
