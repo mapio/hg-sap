@@ -125,5 +125,10 @@ performed actions complete successfully; on the other hand, it will never modify
 the working repository (except for updating the bookmark), so it should be
 "reasonably safe" to be used.
 
+Moreover, as shown even by a very simple example in
+[test/branhced](test/branched) this approach seems not to work at all in case
+of a branched history. I'll try to fix this because it is unthinkable to
+restrict the usage just to reporsitories with linear histrory.
+
 
 ![Analytics](https://ga-beacon.appspot.com/UA-377250-20/hg-sap?pixel)
