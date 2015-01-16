@@ -1,7 +1,7 @@
 #!/bin/bash -e
 
 TMPDIR=$(mktemp -d /tmp/squash-XXXXXX) || exit 1
-echo $TMPDIR
+
 REPOSITORY="$TMPDIR/work"
 PUBLIC="$TMPDIR/public"
 REVS="$TMPDIR/revs.txt"
@@ -17,30 +17,16 @@ echocol "Performing some work"
 work_simple
 work_simple
 work_simple
-_hgr "$REPOSITORY" up -r 1
+_hgr up -r 1
 work_simple
-_hgr "$REPOSITORY" merge -y --tool internal:local
-_hgr "$REPOSITORY" ci -m"Merge 0"
-
-exit
-
-./hg-sap "$REPOSITORY" "$PUBLIC"
-echo -e "$(tip_node "$REPOSITORY")\t$(tip_node "$PUBLIC")" >> "$REVS"
-
-simplework
+_hgr merge -y --tool internal:local
+_hgr ci -m"Merge 0"
+work_simple
 
 ./hg-sap "$REPOSITORY" "$PUBLIC"
 echo -e "$(tip_node "$REPOSITORY")\t$(tip_node "$PUBLIC")" >> "$REVS"
 
-simplework
-simplework
-simplework
-simplework
-
-./hg-sap "$REPOSITORY" "$PUBLIC"
-echo -e "$(tip_node "$REPOSITORY")\t$(tip_node "$PUBLIC")" >> "$REVS"
-
-### show
+### showit
 
 echocol "Inspecting repos"
 

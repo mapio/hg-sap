@@ -2,7 +2,7 @@
 
 TMPDIR=$(mktemp -d /tmp/squash-XXXXXX) || exit 1
 
-WORK="$TMPDIR/work"
+REPOSITORY="$TMPDIR/work"
 PUBLIC="$TMPDIR/public"
 REVS="$TMPDIR/revs.txt"
 
@@ -10,51 +10,35 @@ echocol() { echo -e "\033[32m*** $@...\033[0m"; }
 
 . ./test/functions
 
-init() {
-	V=0
-	hg init "$WORK"
-	echo $V > "$WORK/file.txt"
-	hg -R "$WORK" add "$WORK/file.txt"
-	hg -R "$WORK" ci -m"Version $V"
-}
-
-simplework() {
-	V=$((V+1))
-	echo $V > "$WORK/file.txt"
-	hg -R "$WORK" ci -m"Version $V"
-}
-
 ### doit
 
 echocol "Performing some work"
 
-init
+work_simple
+work_simple
+work_simple
 
-simplework
-simplework
-simplework
+./hg-sap "$REPOSITORY" "$PUBLIC"
+echo -e "$(tip_node "$REPOSITORY")\t$(tip_node "$PUBLIC")" >> "$REVS"
 
-./hg-sap "$WORK" "$PUBLIC"
-echo -e "$(tip_node "$WORK")\t$(tip_node "$PUBLIC")" >> "$REVS"
+work_simple
 
-simplework
+./hg-sap "$REPOSITORY" "$PUBLIC"
+echo -e "$(tip_node "$REPOSITORY")\t$(tip_node "$PUBLIC")" >> "$REVS"
 
-./hg-sap "$WORK" "$PUBLIC"
-echo -e "$(tip_node "$WORK")\t$(tip_node "$PUBLIC")" >> "$REVS"
+work_simple
+work_simple
+work_simple
+work_simple
 
-simplework
-simplework
-simplework
-simplework
+./hg-sap "$REPOSITORY" "$PUBLIC"
+echo -e "$(tip_node "$REPOSITORY")\t$(tip_node "$PUBLIC")" >> "$REVS"
 
-./hg-sap "$WORK" "$PUBLIC"
-echo -e "$(tip_node "$WORK")\t$(tip_node "$PUBLIC")" >> "$REVS"
-
-### show
+### showit
 
 echocol "Inspecting repos"
 
-inspect_repo "$WORK"
+inspect_repo "$REPOSITORY"
 inspect_repo "$PUBLIC"
 
 ### testit
@@ -62,7 +46,7 @@ inspect_repo "$PUBLIC"
 echocol "Testing repo differences"
 
 cat "$REVS" | while read src dst; do
-	compare_repos "$WORK" "$src" "$PUBLIC" "$dst"
+	compare_repos "$REPOSITORY" "$src" "$PUBLIC" "$dst"
 done
 
 rm -rf "$TMPDIR"
