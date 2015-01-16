@@ -1,7 +1,10 @@
 # helper functions
 
 _hgr() {
-	hg -q -R "$REPOSITORY" "$@" >/dev/null 2>&1 || true
+	local REPO="$1"
+	shift
+
+	hg -q -R "$REPO" "$@" >/dev/null 2>&1 || true
 }
 
 _ensurerepo() {
@@ -89,8 +92,8 @@ add() {
 	local MESSAGE="add file '${FILE#$REPOSITORY/}'"
 	_rndtext "$FILE"
 	echo "$MESSAGE" >&2
-	_hgr add "$FILE"
-	_hgr ci -m "$MESSAGE"
+	_hgr "$REPOSITORY" add "$FILE"
+	_hgr "$REPOSITORY" ci -m "$MESSAGE"
 }
 
 remove() {
@@ -103,9 +106,9 @@ remove() {
 	fi
 	local MESSAGE="remove file '$FILE'"
 	echo "$MESSAGE" >&2
-	_hgr rm -f "$REPOSITORY/$FILE"
+	_hgr "$REPOSITORY" rm -f "$REPOSITORY/$FILE"
 	rm -f "$REPOSITORY/$FILE" # to overcome "not removing ... file is untracked"
-	_hgr "$REPOSITORY" ci -m "$MESSAGE"
+	_hgr "$REPOSITORY" "$REPOSITORY" ci -m "$MESSAGE"
 }
 
 rename() {
@@ -120,8 +123,8 @@ rename() {
 	rm -f "$FILE1"
 	local MESSAGE="rename file '$FILE0' to '${FILE1#$REPOSITORY/}'"
 	echo "$MESSAGE" >&2
-	_hgr mv "$REPOSITORY/$FILE0" "$FILE1"
-	_hgr ci -m "$MESSAGE"
+	_hgr "$REPOSITORY" mv "$REPOSITORY/$FILE0" "$FILE1"
+	_hgr "$REPOSITORY" ci -m "$MESSAGE"
 }
 
 edit() {
@@ -139,7 +142,7 @@ edit() {
 	_interleave "$REPOSITORY/$FILE" "$EDITS" "$REPOSITORY/$FILE"
 	rm -f "$EDITS"
 	echo "$MESSAGE" >&2
-	_hgr ci -m "$MESSAGE"
+	_hgr "$REPOSITORY" ci -m "$MESSAGE"
 }
 
 merge() {
@@ -147,7 +150,7 @@ merge() {
 
 	local REVS=("$@")
 	if [[ -z "${REVS[@]}" ]]; then
-		REVS=( $( _hgr heads --template '{node|short}\n' ) )
+		REVS=( $( _hgr "$REPOSITORY" heads --template '{node|short}\n' ) )
 	fi
 	if [[ "${#REVS[@]}" -lt 2 ]]; then
 		echo "nothing to merge" >&2
@@ -156,15 +159,15 @@ merge() {
 	local HEAD=( $( shuf -n 2 -e "${REVS[@]}" ) )
 	MESSAGE="merge revs '${HEAD[0]}' '${HEAD[1]}'"
 	echo "$MESSAGE" >&2
-	_hgr merge -y --tool internal:local -r "${HEAD[0]}" -r "${HEAD[1]}"
-	_hgr ci -m "$MESSAGE"
+	_hgr "$REPOSITORY" merge -y --tool internal:local -r "${HEAD[0]}" -r "${HEAD[1]}"
+	_hgr "$REPOSITORY" ci -m "$MESSAGE"
 }
 
 merge_all() {
 	_ensurerepo || return 1
 
 	while true; do
-		local REVS=( $( _hgr heads --template '{node|short}\n' ) )
+		local REVS=( $( _hgr "$REPOSITORY" heads --template '{node|short}\n' ) )
 		if [[ "${#REVS[@]}" -lt 2 ]]; then
 			echo "merged all heads" >&2
 			return
@@ -176,14 +179,14 @@ merge_all() {
 update() {
 	_ensurerepo || return 1
 
-	local REV=$( _hgr log --template '{node|short}\n' | shuf -n 1 )
+	local REV=$( _hgr "$REPOSITORY" log --template '{node|short}\n' | shuf -n 1 )
 	if [[ -z "$REV" ]]; then
 		echo "nothing to update to" >&2
 		return
 	fi
 	MESSAGE="update to rev '$REV'"
 	echo "$MESSAGE" >&2
-	_hgr up -r "$REV" >/dev/null 2>&1
+	_hgr "$REPOSITORY" up -r "$REV" >/dev/null 2>&1
 }
 
 work() {
