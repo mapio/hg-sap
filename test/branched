@@ -1,0 +1,58 @@
+#!/bin/bash -e
+
+TMPDIR=$(mktemp -d /tmp/squash-XXXXXX) || exit 1
+echo $TMPDIR
+REPOSITORY="$TMPDIR/work"
+PUBLIC="$TMPDIR/public"
+REVS="$TMPDIR/revs.txt"
+
+echocol() { echo -e "\033[32m*** $@...\033[0m"; }
+
+. ./test/functions
+
+### doit
+
+echocol "Performing some work"
+
+work_simple
+work_simple
+work_simple
+_hgr "$REPOSITORY" up -r 1
+work_simple
+_hgr "$REPOSITORY" merge -y --tool internal:local
+_hgr "$REPOSITORY" ci -m"Merge 0"
+
+exit
+
+./hg-sap "$REPOSITORY" "$PUBLIC"
+echo -e "$(tip_node "$REPOSITORY")\t$(tip_node "$PUBLIC")" >> "$REVS"
+
+simplework
+
+./hg-sap "$REPOSITORY" "$PUBLIC"
+echo -e "$(tip_node "$REPOSITORY")\t$(tip_node "$PUBLIC")" >> "$REVS"
+
+simplework
+simplework
+simplework
+simplework
+
+./hg-sap "$REPOSITORY" "$PUBLIC"
+echo -e "$(tip_node "$REPOSITORY")\t$(tip_node "$PUBLIC")" >> "$REVS"
+
+### show
+
+echocol "Inspecting repos"
+
+inspect_repo "$REPOSITORY"
+inspect_repo "$PUBLIC"
+
+### testit
+
+echocol "Testing repo differences"
+
+cat "$REVS" | while read src dst; do
+	compare_repos "$REPOSITORY" "$src" "$PUBLIC" "$dst"
+done
+
+rm -rf "$TMPDIR"
