@@ -1,5 +1,9 @@
 # helper functions
 
+_hgr() {
+	hg -q -R "$REPOSITORY" "$@" >/dev/null 2>&1 || true
+}
+
 _ensurerepo() {
 	if [[ -z "$REPOSITORY" ]]; then
 		echo "Please define the REPOSITORY environment variable" >&2
@@ -47,7 +51,7 @@ _rndtext() {
 tip_node() {
 	local REPO="$1"
 
-	hg -R "$REPO" tip --template '{node|short}'
+	hg -q -R "$REPO" tip --template '{node|short}'
 }
 
 compare_repos() {
@@ -57,8 +61,8 @@ compare_repos() {
 	local DST_AT="$4"
 	local TMPDIR=$(mktemp -d /tmp/cmprepo-XXXXXX) || exit 1
 
-	hg -R "$SRC" archive -r "$SRC_AT" "$TMPDIR/src"
-	hg -R "$DST" archive -r "$DST_AT" "$TMPDIR/dst"
+	hg -q -R "$SRC" archive -r "$SRC_AT" "$TMPDIR/src"
+	hg -q -R "$DST" archive -r "$DST_AT" "$TMPDIR/dst"
 	rm -f "$TMPDIR"/{src,dst}/.hg_archival.txt
 	if diff -qr "$TMPDIR/src" "$TMPDIR/dst" 2>/dev/null; then
 		echo "'$(basename $SRC)@$SRC_AT' is equal to '$(basename $DST)@$DST_AT'"
@@ -73,7 +77,7 @@ inspect_repo() {
 	local REPO="$1"
 
 	echo "*** Revs in '$REPO':"
-	hg -R "$REPO" log -r 0:tip --template '{node|short} {desc|firstline}\n'
+	hg -q -R "$REPO" log -r 0:tip --template '{node|short} {desc|firstline}\n'
 }
 
 # randomized mercurial actions
@@ -85,8 +89,8 @@ add() {
 	local MESSAGE="add file '${FILE#$REPOSITORY/}'"
 	_rndtext "$FILE"
 	echo "$MESSAGE" >&2
-	hg -R "$REPOSITORY" add "$FILE"
-	hg -R "$REPOSITORY" ci -m "$MESSAGE"
+	_hgr add "$FILE"
+	_hgr ci -m "$MESSAGE"
 }
 
 remove() {
@@ -99,9 +103,9 @@ remove() {
 	fi
 	local MESSAGE="remove file '$FILE'"
 	echo "$MESSAGE" >&2
-	hg -R "$REPOSITORY" rm -f "$REPOSITORY/$FILE" >/dev/null 2>&1
+	_hgr rm -f "$REPOSITORY/$FILE"
 	rm -f "$REPOSITORY/$FILE" # to overcome "not removing ... file is untracked"
-	hg -R "$REPOSITORY" ci -m "$MESSAGE"
+	_hgr "$REPOSITORY" ci -m "$MESSAGE"
 }
 
 rename() {
@@ -116,8 +120,8 @@ rename() {
 	rm -f "$FILE1"
 	local MESSAGE="rename file '$FILE0' to '${FILE1#$REPOSITORY/}'"
 	echo "$MESSAGE" >&2
-	hg -R "$REPOSITORY" mv "$REPOSITORY/$FILE0" "$FILE1"
-	hg -R "$REPOSITORY" ci -m "$MESSAGE"
+	_hgr mv "$REPOSITORY/$FILE0" "$FILE1"
+	_hgr ci -m "$MESSAGE"
 }
 
 edit() {
@@ -135,7 +139,7 @@ edit() {
 	_interleave "$REPOSITORY/$FILE" "$EDITS" "$REPOSITORY/$FILE"
 	rm -f "$EDITS"
 	echo "$MESSAGE" >&2
-	hg -R "$REPOSITORY" ci -m "$MESSAGE"
+	_hgr ci -m "$MESSAGE"
 }
 
 merge() {
@@ -143,7 +147,7 @@ merge() {
 
 	local REVS=("$@")
 	if [[ -z "${REVS[@]}" ]]; then
-		REVS=( $( hg -R "$REPOSITORY" heads --template '{node|short}\n' ) )
+		REVS=( $( _hgr heads --template '{node|short}\n' ) )
 	fi
 	if [[ "${#REVS[@]}" -lt 2 ]]; then
 		echo "nothing to merge" >&2
@@ -152,15 +156,15 @@ merge() {
 	local HEAD=( $( shuf -n 2 -e "${REVS[@]}" ) )
 	MESSAGE="merge revs '${HEAD[0]}' '${HEAD[1]}'"
 	echo "$MESSAGE" >&2
-	hg -R "$REPOSITORY" merge -y --tool internal:local -r "${HEAD[0]}" -r "${HEAD[1]}" || true
-	hg -R "$REPOSITORY" ci -m "$MESSAGE"
+	_hgr merge -y --tool internal:local -r "${HEAD[0]}" -r "${HEAD[1]}"
+	_hgr ci -m "$MESSAGE"
 }
 
 merge_all() {
 	_ensurerepo || return 1
 
 	while true; do
-		local REVS=( $( hg -R "$REPOSITORY" heads --template '{node|short}\n' ) )
+		local REVS=( $( _hgr heads --template '{node|short}\n' ) )
 		if [[ "${#REVS[@]}" -lt 2 ]]; then
 			echo "merged all heads" >&2
 			return
@@ -172,10 +176,14 @@ merge_all() {
 update() {
 	_ensurerepo || return 1
 
-	local REV=$(hg -R "$REPOSITORY" log --template '{node|short}\n' | shuf -n 1)
+	local REV=$( _hgr log --template '{node|short}\n' | shuf -n 1 )
+	if [[ -z "$REV" ]]; then
+		echo "nothing to update to" >&2
+		return
+	fi
 	MESSAGE="update to rev '$REV'"
 	echo "$MESSAGE" >&2
-	hg -R "$REPOSITORY" up -r "$REV" >/dev/null 2>&1
+	_hgr up -r "$REV" >/dev/null 2>&1
 }
 
 work() {
@@ -194,6 +202,33 @@ work() {
 			remove
 		elif [[ $ACTION -lt 21000 ]]; then
 			rename
+		else
+			edit
+		fi
+		NUM_COMMITS=$(( $NUM_COMMITS - 1 ))
+	done
+}
+
+branching_work() {
+	_ensurerepo || return 1
+
+	local NUM_COMMITS="$1"
+	if [[ -z "$NUM_COMMITS" ]]; then
+		NUM_COMMITS=$(( $RANDOM / 5000 + 1 ))
+	fi
+
+	while [[ $NUM_COMMITS -gt 0 ]]; do
+		local ACTION=$RANDOM
+		if [[ $ACTION -lt 5000 ]]; then
+			add
+		elif [[ $ACTION -lt 10000 ]]; then
+			remove
+		elif [[ $ACTION -lt 15000 ]]; then
+			rename
+		elif [[ $ACTION -lt 20000 ]]; then
+			update
+		elif [[ $ACTION -lt 25000 ]]; then
+			merge
 		else
 			edit
 		fi
