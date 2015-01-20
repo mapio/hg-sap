@@ -4,14 +4,6 @@ if hg help phase >/dev/null 2>&1; then
 	HAS_PHASE=1
 fi
 
-_check() {
-	if [[ $? -ne 0 ]]; then
-		echo -e " ERORR!\nLogs saved in '$LOGFILE'." >&2
-		cat "$LOGFILE" >&2
-		exit 1
-	fi
-}
-
 squash() {
 	local WORKING_REPO="$1"
 	local PUBLISHING_REPO="$2"
@@ -26,11 +18,8 @@ squash() {
 		local DEST=0
 	else
 		local MFROM=$(hg -R "$WORKING_REPO" log -r "children(last_squashed)" --template "$TEMPLATE")
-		_check
 		local MTO=$(hg -R "$WORKING_REPO" tip --template "$TEMPLATE")
-		_check
 		local DEST=$(hg -R "$SQUASHING_REPO" tip --template "$TEMPLATE")
-		_check
 	fi
 	if [[ -z "$MFROM" ]]; then
 		echo "*** Nothing to squash!"
