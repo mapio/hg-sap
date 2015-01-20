@@ -169,7 +169,7 @@ merge() {
 
 	local REVS=("$@")
 	if [[ -z "${REVS[@]}" ]]; then
-		REVS=( $( _hgr heads --template '{node|short}\n' ) )
+		REVS=( $( hgr heads --template '{node|short}\n' ) )
 	fi
 	if [[ "${#REVS[@]}" -lt 2 ]]; then
 		echo "nothing to merge" >&2
@@ -198,7 +198,7 @@ merge_all() {
 update() {
 	_ensurerepo || return 1
 
-	local REV=$( _hgr log --template '{node|short}\n' | shuf -n 1 )
+	local REV=$( hgr log --template '{node|short}\n' | shuf -n 1 )
 	if [[ -z "$REV" ]]; then
 		echo "nothing to update to" >&2
 		return
@@ -231,7 +231,7 @@ work() {
 	done
 }
 
-branching_work() {
+work_branching() {
 	_ensurerepo || return 1
 
 	local NUM_COMMITS="$1"
