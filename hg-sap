@@ -9,7 +9,7 @@ _check() {
 		echo -e " ERORR!\nLogs saved in '$LOGFILE'." >&2
 		cat "$LOGFILE" >&2
 		exit 1
-	else
+	fi
 }
 
 squash() {
