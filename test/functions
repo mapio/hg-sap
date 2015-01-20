@@ -186,7 +186,7 @@ merge_all() {
 	_ensurerepo || return 1
 
 	while true; do
-		local REVS=( $( _hgr heads --template '{node|short}\n' ) )
+		local REVS=( $( hgr heads --template '{node|short}\n' ) )
 		if [[ "${#REVS[@]}" -lt 2 ]]; then
 			echo "merged all heads" >&2
 			return
