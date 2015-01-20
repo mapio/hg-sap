@@ -82,9 +82,13 @@ _ensurerepo() {
 	fi
 }
 
+hgr() {
+	hg -R "$REPOSITORY" "$@"
+}
+
 _hgr() {
 	_ensurerepo || exit 1 # this is a last resort
-	hg -q -R "$REPOSITORY" "$@" >/dev/null 2>&1 || true
+	hgr "$@" >/dev/null 2>&1 || true
 }
 
 # deterministic mercurial actions
